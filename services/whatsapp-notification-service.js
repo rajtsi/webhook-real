@@ -17,7 +17,7 @@ module.exports = function (whatsapp_number, template_name, variables = []) {
 
     let template = {};
     template.name = template_name;
-    template.language = { code: "en_US" };
+    template.language = { code: "en" };
 
     let template_vars = [];
     let components = { type: "body" };

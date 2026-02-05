@@ -13,7 +13,7 @@ function verifySignature(payload, signature) {
 
 const events = [
     "user.created",
-    "user.updated"
+    // "user.updated"
 ];
 
 module.exports = { verifySignature, events };

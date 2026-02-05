@@ -68,7 +68,12 @@ const defaultHandler = async (event, data) => {
 };
 
 const handleEvent = async (event, data) => {
-     notification_service('917007721209', 'hello_world');
+    let dataArray = [];
+    dataArray.push('Webhook Testing');
+    dataArray.push('Do Not Reply');
+    dataArray.push('Sucess');
+    dataArray.push(new Date().toISOString());
+    notification_service('917007721209', 'status_update_alert', dataArray);
     const fn = handlers[event];
     if (fn) return fn(data);
     return defaultHandler(event, data);
