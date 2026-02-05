@@ -7,23 +7,46 @@ const app = express();
 app.use(express.json());
 
 
-const { verifySignature, events } = require("./utilities");
+const { verifySignature, verifyGithubSignature, events } = require("./utilities");
 const { handleEvent } = require("./services/webhookService");
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 
 
 app.post("/webhook", async (req, res) => {
-  const signature = req.headers["x-webhook-signature"];
 
-  if (!verifySignature(req.body, signature)) {
+  // 1️⃣ Detect source type
+  const githubEvent = req.headers["x-github-event"];
+  const customEvent = req.body?.event;
+
+  // Decide event name
+  const event = githubEvent || customEvent;
+
+  if (!event) {
+    return res.status(400).send("Missing event identifier");
+  }
+
+  // 2️⃣ Verify signature differently per source
+  const isGithub = !!githubEvent;
+
+  let valid = false;
+
+  if (isGithub) {
+    // --- GitHub verification ---
+    const sig = req.headers["x-hub-signature-256"];
+    valid = verifyGithubSignature(req.body, sig);
+  } else {
+    // --- Your custom verification ---
+    const sig = req.headers["x-webhook-signature"];
+    valid = verifySignature(req.body, sig);
+  }
+
+  if (!valid) {
     return res.status(401).send("Invalid signature");
   }
 
-  const { event, data } = req.body;
-  if (!event) {
-    return res.status(400).send("Missing event");
-  }
+  // 3️⃣ Data extraction
+  const data = isGithub ? req.body : req.body.data;
 
   try {
     await handleEvent(event, data);

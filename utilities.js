@@ -1,19 +1,22 @@
-const crypto = require("crypto");
+function verifyGithubSignature(payload, signature) {
+    if (!signature) return false;
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+    const hmac = crypto.createHmac("sha256", WEBHOOK_SECRET);
+    const digest =
+        "sha256=" + hmac.update(JSON.stringify(payload)).digest("hex");
 
-function verifySignature(payload, signature) {
-    const hash = crypto
-        .createHmac("sha256", WEBHOOK_SECRET)
-        .update(JSON.stringify(payload))
-        .digest("hex");
-
-    return hash === signature;
+    return crypto.timingSafeEqual(
+        Buffer.from(digest),
+        Buffer.from(signature)
+    );
 }
-
 const events = [
     "user.created",
     // "user.updated"
 ];
+module.exports = {
+    verifySignature,
+    verifyGithubSignature,
+    events
+};
 
-module.exports = { verifySignature, events };
